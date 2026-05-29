@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import { decodeStateFromUrl } from '../utils/urlState';
 
 export type Tool = 'pan' | 'draw' | 'erase' | 'fill';
 export type Mode = 'edit' | 'view';
@@ -9,7 +10,7 @@ interface AppState {
   activeTool: Tool;
   activeColor: string;
   pegboardSize: number; // 0 means infinite/hidden
-  highlightQuery: { type: 'row' | 'col' | 'color' | null; value: string | null };
+  highlightQuery: { type: 'row' | 'col' | 'color' | null; value: string[] | null };
   clickHighlightMode: ClickHighlightMode;
   setMode: (mode: Mode) => void;
   setActiveTool: (tool: Tool) => void;
@@ -41,8 +42,16 @@ export const PRESET_COLORS = [
   '#A52A2A', '#DEB887', '#5F9EA0', '#D2691E', '#FF7F50', '#6495ED',
 ];
 
+const getInitialMode = (): Mode => {
+  if (typeof window === 'undefined') return 'edit';
+  const urlState = new URLSearchParams(window.location.search).get('s');
+  if (!urlState) return 'edit';
+  const decoded = decodeStateFromUrl(urlState);
+  return decoded && Object.keys(decoded).length > 0 ? 'view' : 'edit';
+};
+
 export const useAppStore = create<AppState>((set) => ({
-  mode: 'edit',
+  mode: getInitialMode(),
   activeTool: 'draw',
   activeColor: CORE_COLORS[0],
   paletteColors: CORE_COLORS,

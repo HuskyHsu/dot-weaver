@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useAppStore, PRESET_COLORS } from '../../store/useAppStore';
+import { useAppStore, PRESET_COLORS, CORE_COLORS } from '../../store/useAppStore';
 import { useBeadsStore } from '../../store/useBeadsStore';
 import { Plus, X } from 'lucide-react';
 
@@ -78,6 +78,10 @@ export const FloatingPalette: React.FC = () => {
     setShowPresets(false);
   };
 
+  const availablePresets = [...CORE_COLORS, ...PRESET_COLORS].filter(
+    (color) => !paletteColors.includes(color)
+  );
+
   return (
     <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-30 pointer-events-none flex flex-col items-center gap-3">
       
@@ -92,12 +96,16 @@ export const FloatingPalette: React.FC = () => {
           </button>
         </div>
         <div className="grid grid-cols-6 gap-2">
-           {PRESET_COLORS.map(color => (
+           {availablePresets.map(color => (
              <button
                 key={color}
                 onClick={() => handleAddColor(color)}
                 className="w-8 h-8 rounded-full border border-gray-200 hover:scale-110 transition-transform shadow-sm"
-                style={{ backgroundColor: color }}
+                style={{ 
+                  background: color.includes('rgba') 
+                    ? `linear-gradient(${color}, ${color}), repeating-conic-gradient(#cbd5e1 0% 25%, #f1f5f9 0% 50%) 50% / 8px 8px`
+                    : color
+                }}
              />
            ))}
            {/* Custom Color Picker */}
@@ -124,14 +132,14 @@ export const FloatingPalette: React.FC = () => {
       <div className="pointer-events-auto bg-white/90 backdrop-blur-xl px-4 py-3 rounded-full shadow-[0_8px_30px_rgb(0,0,0,0.08)] border border-gray-200 flex items-center space-x-3">
         {paletteColors.map(color => {
           const count = colorCounts[color] || 0;
-          const isHighlighted = mode === 'view' && highlightQuery.type === 'color' && highlightQuery.value === color;
+          const isHighlighted = mode === 'view' && highlightQuery.type === 'color' && highlightQuery.value?.includes(color);
           
           return (
           <div key={color} className="relative flex justify-center group">
             <button
               onClick={() => {
                  if (mode === 'view') {
-                    setHighlightQuery(isHighlighted ? { type: null, value: null } : { type: 'color', value: color });
+                    setHighlightQuery(isHighlighted ? { type: null, value: null } : { type: 'color', value: [color] });
                  } else {
                     handleColorSelect(color);
                  }

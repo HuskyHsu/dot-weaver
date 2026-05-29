@@ -30,7 +30,9 @@ export const floodFill = (
     if (currentColor === startColor) {
       filledCount++;
       if (filledCount > MAX_FILL) {
-        alert('填滿範圍過大或區域未完全封閉，為避免程式卡死，已自動取消！');
+        setTimeout(() => {
+          alert('填滿範圍過大或區域未完全封閉，為避免程式卡死，已自動取消！');
+        }, 10);
         return beads; // abort and return original state
       }
 
