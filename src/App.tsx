@@ -4,7 +4,7 @@ import { FloatingPalette } from './features/toolbar/FloatingPalette';
 
 function App() {
   return (
-    <div className="w-screen h-screen overflow-hidden relative no-select">
+    <div className="w-screen h-dvh overflow-hidden relative no-select">
       <InfiniteCanvas />
       
       {/* UI Overlay layer */}
