@@ -31,35 +31,63 @@ export const InfiniteCanvas: React.FC = () => {
     }
   };
 
+  const zoomTo = (newScale: number, anchor?: { x: number; y: number }) => {
+    if (!containerRef.current) return;
+    const state = useCanvasStore.getState();
+    const currentScale = state.scale;
+    const currentX = state.x;
+    const currentY = state.y;
+    if (currentScale === 0) return;
+    
+    // Clamp
+    newScale = Math.max(0.1, Math.min(newScale, 5));
+
+    const rect = containerRef.current.getBoundingClientRect();
+    const cx = rect.width / 2;
+    const cy = rect.height / 2;
+
+    const SX = anchor ? anchor.x : cx;
+    const SY = anchor ? anchor.y : cy;
+
+    const newX = currentX + (SX - cx - currentX) * (currentScale - newScale) / currentScale;
+    const newY = currentY + (SY - cy - currentY) * (currentScale - newScale) / currentScale;
+
+    setTransform({ scale: newScale, x: newX, y: newY });
+  };
+
   useGesture(
     {
-      onDrag: ({ offset: [dx, dy], memo, pinching }) => {
-        if (pinching) return memo;
-        if (mode === 'edit' && document.activeElement?.tagName === 'INPUT') return memo; // simple check
-        setTransform({ x: dx, y: dy });
-        return memo;
+      onDrag: ({ delta: [dx, dy], pinching }) => {
+        if (pinching) return;
+        if (mode === 'edit' && document.activeElement?.tagName === 'INPUT') return;
+        const state = useCanvasStore.getState();
+        setTransform({ x: state.x + dx, y: state.y + dy });
       },
-      onPinch: ({ offset: [d], memo }) => {
-        setTransform({ scale: d });
-        return memo;
+      onPinch: ({ offset: [newScale] }) => {
+        // Mobile pinch zooms relative to the center of the screen
+        zoomTo(newScale);
       },
       onWheel: ({ event, delta: [, dy] }) => {
         event.preventDefault();
-        // Always zoom on wheel (no ctrlKey required) since panning is handled by drag
-        const newScale = Math.max(0.1, Math.min(scale - dy * 0.01, 5));
-        setTransform({ scale: newScale });
+        if (!containerRef.current) return;
+        const state = useCanvasStore.getState();
+        const rect = containerRef.current.getBoundingClientRect();
+        const anchor = {
+          x: event.clientX - rect.left,
+          y: event.clientY - rect.top
+        };
+        zoomTo(state.scale - dy * 0.01, anchor);
       }
     },
     {
       target: containerRef,
       eventOptions: { passive: false },
       drag: {
-         from: () => [x, y],
          filterTaps: true,
-         enabled: true, // we might want to disable drag in edit mode if drawing, but we can separate drawing to tap/drag on BeadsLayer
+         enabled: true,
       },
       pinch: {
-         from: () => [scale, rotation],
+         from: () => [useCanvasStore.getState().scale, useCanvasStore.getState().rotation],
          scaleBounds: { min: 0.1, max: 5 },
       }
     }
@@ -85,6 +113,7 @@ export const InfiniteCanvas: React.FC = () => {
         className="origin-center w-full h-full"
         style={{
           transform: `translate3d(${x}px, ${y}px, 0) scale(${scale}) rotate(${rotation}deg)`,
+          willChange: 'transform'
         }}
       >
         {/* We place center at 50% 50% of the screen initially */}
@@ -95,16 +124,16 @@ export const InfiniteCanvas: React.FC = () => {
       </div>
       
       {/* View Controls */}
-      <div className="absolute bottom-4 right-4 flex flex-col space-y-2 z-50">
+      <div className="absolute top-4 right-4 flex flex-col space-y-2 z-50">
         <button 
-          onClick={() => setTransform({ scale: Math.min(scale + 0.2, 5) })}
+          onClick={() => zoomTo(scale + 0.2)}
           className="bg-white p-2 rounded-full shadow-md hover:bg-gray-50 text-gray-700 flex items-center justify-center"
           title="Zoom In"
         >
           <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
         </button>
         <button 
-          onClick={() => setTransform({ scale: Math.max(scale - 0.2, 0.1) })}
+          onClick={() => zoomTo(scale - 0.2)}
           className="bg-white p-2 rounded-full shadow-md hover:bg-gray-50 text-gray-700 flex items-center justify-center"
           title="Zoom Out"
         >

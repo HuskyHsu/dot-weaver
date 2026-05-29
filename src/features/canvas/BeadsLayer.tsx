@@ -177,10 +177,11 @@ export const BeadsLayer: React.FC = React.memo(() => {
           height: GRID_SIZE,
           left: (x + RADIUS) * GRID_SIZE,
           top: (y + RADIUS) * GRID_SIZE,
-          backgroundColor: color,
-          backdropFilter: color.includes('rgba') ? 'blur(2px)' : 'none',
-          boxShadow: '1px 1px 2px rgba(0,0,0,0.25), inset -1px -2px 3px rgba(0,0,0,0.15), inset 1px 1px 2px rgba(255,255,255,0.4)',
-          border: '0.5px solid rgba(0,0,0,0.1)',
+          background: color.includes('rgba') 
+            ? `linear-gradient(${color}, ${color}), repeating-conic-gradient(rgba(0,0,0,0.06) 0% 25%, transparent 0% 50%) 50% / 6px 6px`
+            : color,
+          boxShadow: '1.5px 2.5px 3px rgba(0,0,0,0.25), inset -1.5px -1.5px 3px rgba(0,0,0,0.25), inset 1.5px 1.5px 3px rgba(255,255,255,0.6)',
+          border: '0.5px solid rgba(0,0,0,0.15)',
         }}
       >
         {/* Hole in the middle */}
@@ -189,8 +190,8 @@ export const BeadsLayer: React.FC = React.memo(() => {
           style={{
             width: '35%',
             height: '35%',
-            boxShadow: 'inset 1px 1px 2px rgba(0,0,0,0.3)',
-            border: '0.5px solid rgba(0,0,0,0.1)',
+            boxShadow: 'inset 1.5px 1.5px 2px rgba(0,0,0,0.4), inset -1px -1px 1px rgba(255,255,255,0.5)',
+            border: '0.5px solid rgba(0,0,0,0.2)',
           }}
         />
       </div>

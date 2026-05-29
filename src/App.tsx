@@ -4,11 +4,13 @@ import { FloatingPalette } from './features/toolbar/FloatingPalette';
 
 function App() {
   return (
-    <div className="w-screen h-screen overflow-hidden flex flex-col no-select">
-      <Toolbar />
-      <div className="flex-1 relative">
-        <InfiniteCanvas />
+    <div className="w-screen h-screen overflow-hidden relative no-select">
+      <InfiniteCanvas />
+      
+      {/* UI Overlay layer */}
+      <div className="absolute bottom-0 left-0 right-0 p-4 md:p-6 pointer-events-none flex flex-col items-center gap-4 z-20">
         <FloatingPalette />
+        <Toolbar />
       </div>
     </div>
   );

@@ -83,7 +83,7 @@ export const FloatingPalette: React.FC = () => {
   );
 
   return (
-    <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-30 pointer-events-none flex flex-col items-center gap-3">
+    <div className="relative z-30 pointer-events-none flex flex-col items-center gap-3 w-full px-2 sm:px-0">
       
       {/* Popover for Presets */}
       <div 
@@ -100,7 +100,7 @@ export const FloatingPalette: React.FC = () => {
              <button
                 key={color}
                 onClick={() => handleAddColor(color)}
-                className="w-8 h-8 rounded-full border border-gray-200 hover:scale-110 transition-transform shadow-sm"
+                className="w-8 h-8 rounded-full border border-gray-200 hover:scale-110 transition-transform shadow-[1.5px_2.5px_3px_rgba(0,0,0,0.25),inset_-1.5px_-1.5px_3px_rgba(0,0,0,0.25),inset_1.5px_1.5px_3px_rgba(255,255,255,0.6)]"
                 style={{ 
                   background: color.includes('rgba') 
                     ? `linear-gradient(${color}, ${color}), repeating-conic-gradient(#cbd5e1 0% 25%, #f1f5f9 0% 50%) 50% / 8px 8px`
@@ -129,13 +129,14 @@ export const FloatingPalette: React.FC = () => {
       </div>
 
       {/* Main Palette Bar */}
-      <div className="pointer-events-auto bg-white/90 backdrop-blur-xl px-4 py-3 rounded-full shadow-[0_8px_30px_rgb(0,0,0,0.08)] border border-gray-200 flex items-center space-x-3">
+      <div className="pointer-events-auto bg-white/90 backdrop-blur-xl px-3 sm:px-4 py-2 sm:py-3 rounded-full shadow-[0_8px_30px_rgb(0,0,0,0.08)] border border-gray-200 flex items-center gap-2 sm:gap-3 w-max max-w-[95vw] sm:max-w-full overflow-x-auto no-scrollbar">
         {paletteColors.map(color => {
           const count = colorCounts[color] || 0;
           const isHighlighted = mode === 'view' && highlightQuery.type === 'color' && highlightQuery.value?.includes(color);
+          const isActive = (activeColor === color && activeTool !== 'erase' && activeTool !== 'pan' && mode === 'edit') || isHighlighted;
           
           return (
-          <div key={color} className="relative flex justify-center group">
+          <div key={color} className="relative flex justify-center group shrink-0">
             <button
               onClick={() => {
                  if (mode === 'view') {
@@ -144,16 +145,19 @@ export const FloatingPalette: React.FC = () => {
                     handleColorSelect(color);
                  }
               }}
-              className={`relative flex items-center justify-center w-10 h-10 rounded-full border-[3px] transition-transform shrink-0 ${
-                (activeColor === color && activeTool !== 'erase' && activeTool !== 'pan' && mode === 'edit') || isHighlighted
-                ? 'border-blue-500 scale-110 shadow-md z-10' 
-                : 'border-transparent hover:scale-105'
+              className={`relative flex items-center justify-center w-10 h-10 rounded-full transition-transform shrink-0 ${
+                isActive
+                ? 'scale-110 shadow-[0_4px_12px_rgba(0,0,0,0.3)] z-10' 
+                : 'hover:scale-105'
               }`}
               style={{ 
                 background: color.includes('rgba') 
                   ? `linear-gradient(${color}, ${color}), repeating-conic-gradient(#cbd5e1 0% 25%, #f1f5f9 0% 50%) 50% / 8px 8px`
                   : color,
-                boxShadow: (activeColor !== color && !isHighlighted) ? 'inset 0 2px 4px rgba(0,0,0,0.2)' : 'none' 
+                boxShadow: isActive 
+                  ? '1.5px 2.5px 6px rgba(0,0,0,0.4), inset -1.5px -1.5px 3px rgba(0,0,0,0.25), inset 1.5px 1.5px 3px rgba(255,255,255,0.6)' 
+                  : '1.5px 2.5px 3px rgba(0,0,0,0.25), inset -1.5px -1.5px 3px rgba(0,0,0,0.25), inset 1.5px 1.5px 3px rgba(255,255,255,0.6)',
+                border: isActive ? '2px solid white' : '0.5px solid rgba(0,0,0,0.15)'
               }}
               title={color}
             >

@@ -57,8 +57,8 @@ export const Grid: React.FC = React.memo(() => {
           width: RADIUS * 2 * GRID_SIZE,
           height: RADIUS * 2 * GRID_SIZE,
           backgroundImage: `
-            linear-gradient(to right, var(--grid-line-thick) 2px, transparent 2px),
-            linear-gradient(to bottom, var(--grid-line-thick) 2px, transparent 2px)
+            linear-gradient(to right, var(--grid-line-thick) 1px, transparent 1px),
+            linear-gradient(to bottom, var(--grid-line-thick) 1px, transparent 1px)
           `,
           backgroundSize: `${GRID_SIZE * 5}px ${GRID_SIZE * 5}px`
         }}
@@ -67,16 +67,20 @@ export const Grid: React.FC = React.memo(() => {
       {/* Pegboard Boundary if selected */}
       {pegboardSize > 0 && (
         <div 
-          className="absolute border-4 border-blue-500 shadow-lg pointer-events-none bg-blue-500/5"
+          className="absolute shadow-[0_8px_32px_rgba(0,0,0,0.15)] pointer-events-none backdrop-blur-[3px] bg-black/5 border border-white/40 rounded-[8px]"
           style={{
             top: startY * GRID_SIZE,
             left: startX * GRID_SIZE,
             width: pegboardSize * GRID_SIZE,
             height: pegboardSize * GRID_SIZE,
+            // Draw peg holes (subtle indented dots)
+            backgroundImage: `radial-gradient(circle at 10px 10px, rgba(0,0,0,0.08) 0%, rgba(0,0,0,0.08) 1.5px, transparent 2px),
+                              radial-gradient(circle at 10px 10px, rgba(255,255,255,0.8) 0%, rgba(255,255,255,0.8) 2px, transparent 2.5px)`,
+            backgroundSize: `${GRID_SIZE}px ${GRID_SIZE}px`,
+            backgroundPosition: '0 0, 0 1px' // Offset the white highlight slightly down for 3D indent effect
           }}
         />
       )}
-      {/* Tool Cursor Feedback */}
     </div>
   );
 });
