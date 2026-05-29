@@ -1,4 +1,4 @@
-import { Edit2, Eraser, Eye, Hand, PaintBucket, Pencil, Redo, RotateCw, Trash2, Undo } from 'lucide-react';
+import { Edit2, Eraser, Eye, Hand, PaintBucket, Pencil, Redo, RotateCw, Trash2, Undo, Share2, Check } from 'lucide-react';
 import React from 'react';
 import { Tool, useAppStore } from '../../store/useAppStore';
 import { useBeadsStore } from '../../store/useBeadsStore';
@@ -8,6 +8,38 @@ export const Toolbar: React.FC = () => {
   const { mode, setMode, activeTool, setActiveTool, pegboardSize, setPegboardSize, setHighlightQuery, clickHighlightMode, setClickHighlightMode } = useAppStore();
   const { beads, undo, redo, clear, undoStack, redoStack } = useBeadsStore();
   const { rotate } = useCanvasStore();
+  const [isCopied, setIsCopied] = React.useState(false);
+
+  const handleShare = async () => {
+    const url = window.location.href;
+    const shareData = {
+      title: 'Dot Weaver',
+      text: 'Check out my dot art!',
+      url: url,
+    };
+
+    if (navigator.share) {
+      try {
+        await navigator.share(shareData);
+      } catch (err) {
+        if (err instanceof Error && err.name !== 'AbortError') {
+          fallbackCopy(url);
+        }
+      }
+    } else {
+      fallbackCopy(url);
+    }
+  };
+
+  const fallbackCopy = async (text: string) => {
+    try {
+      await navigator.clipboard.writeText(text);
+      setIsCopied(true);
+      setTimeout(() => setIsCopied(false), 2000);
+    } catch (err) {
+      console.error('Failed to copy', err);
+    }
+  };
 
   const stats = React.useMemo(() => {
     let minX = Infinity,
@@ -123,6 +155,12 @@ export const Toolbar: React.FC = () => {
           <ToolButton icon={<Undo size={18} />} disabled={undoStack.length === 0} onClick={undo} title='Undo' />
           <ToolButton icon={<Redo size={18} />} disabled={redoStack.length === 0} onClick={redo} title='Redo' />
           <ToolButton icon={<RotateCw size={18} />} onClick={() => rotate(90)} title='Rotate View 90°' />
+          <ToolButton 
+            icon={isCopied ? <Check size={18} className="text-green-600" /> : <Share2 size={18} />} 
+            onClick={handleShare} 
+            title='Share (Copy Link)' 
+            className={isCopied ? 'bg-green-50 border-green-200' : ''}
+          />
           <ToolButton
             icon={<Trash2 size={18} />}
             onClick={() => {
