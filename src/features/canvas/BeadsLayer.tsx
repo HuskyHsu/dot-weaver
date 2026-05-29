@@ -1,7 +1,7 @@
-import React, { useRef } from 'react';
 import { useGesture } from '@use-gesture/react';
-import { useBeadsStore } from '../../store/useBeadsStore';
+import React, { useRef } from 'react';
 import { useAppStore } from '../../store/useAppStore';
+import { useBeadsStore } from '../../store/useBeadsStore';
 import { floodFill } from '../../utils/floodFill';
 
 const GRID_SIZE = 20;
@@ -15,7 +15,7 @@ export const BeadsLayer: React.FC = React.memo(() => {
   const getCoord = (e: React.PointerEvent | React.MouseEvent | React.TouchEvent | any) => {
     if (!layerRef.current) return null;
     const rect = layerRef.current.getBoundingClientRect();
-    
+
     let clientX, clientY;
     if (e.touches && e.touches.length > 0) {
       clientX = e.touches[0].clientX;
@@ -24,19 +24,19 @@ export const BeadsLayer: React.FC = React.memo(() => {
       clientX = e.clientX;
       clientY = e.clientY;
     } else {
-       return null;
+      return null;
     }
 
     // Convert screen coordinates to local div coordinates, then to grid indices
-    // This is a bit tricky with scale and rotation. Since we are inside the transformed div, 
-    // we can use the native getBoundingClientRect mapping, but wait, pointer events on transformed elements 
+    // This is a bit tricky with scale and rotation. Since we are inside the transformed div,
+    // we can use the native getBoundingClientRect mapping, but wait, pointer events on transformed elements
     // provide clientX/Y. We can just use the inverse transform or let react's event handling do it?
     // Actually, native offsetX/offsetY on the event target gives local coords, but event target might be a bead.
     // Let's use bounding client rect to calculate.
-    
+
     const x = (clientX - rect.left) / (rect.width / (RADIUS * 2 * GRID_SIZE));
     const y = (clientY - rect.top) / (rect.height / (RADIUS * 2 * GRID_SIZE));
-    
+
     const gridX = Math.floor(x / GRID_SIZE) - RADIUS;
     const gridY = Math.floor(y / GRID_SIZE) - RADIUS;
 
@@ -56,97 +56,100 @@ export const BeadsLayer: React.FC = React.memo(() => {
     }
   };
 
-  useGesture({
-    onPointerDown: ({ event }) => {
-      // In view mode, allow panning (let event bubble) unless highlight mode is active
-      if (mode === 'view') {
-         if (clickHighlightMode !== 'none') {
-             const coords = getCoord(event);
-             if (coords) {
-                 event.stopPropagation();
-                 if (clickHighlightMode === 'row') {
-                    const y = String(coords.gridY);
-                    const currentQuery = useAppStore.getState().highlightQuery;
-                    if (currentQuery.type === 'row' && currentQuery.value?.includes(y)) {
-                       const newVal = currentQuery.value.filter(v => v !== y);
-                       setHighlightQuery(newVal.length > 0 ? { type: 'row', value: newVal } : { type: null, value: null });
-                    } else {
-                       setHighlightQuery({ type: 'row', value: [y] });
-                    }
-                 } else if (clickHighlightMode === 'col') {
-                    const x = String(coords.gridX);
-                    const currentQuery = useAppStore.getState().highlightQuery;
-                    if (currentQuery.type === 'col' && currentQuery.value?.includes(x)) {
-                       const newVal = currentQuery.value.filter(v => v !== x);
-                       setHighlightQuery(newVal.length > 0 ? { type: 'col', value: newVal } : { type: null, value: null });
-                    } else {
-                       setHighlightQuery({ type: 'col', value: [x] });
-                    }
-                 } else if (clickHighlightMode === 'color') {
-                    const color = beads[`${coords.gridX},${coords.gridY}`];
-                    const currentQuery = useAppStore.getState().highlightQuery;
-                    if (color) {
-                       if (currentQuery.type === 'color' && currentQuery.value?.includes(color)) {
-                          const newVal = currentQuery.value.filter(v => v !== color);
-                          setHighlightQuery(newVal.length > 0 ? { type: 'color', value: newVal } : { type: null, value: null });
-                       } else {
-                          setHighlightQuery({ type: 'color', value: [color] });
-                       }
-                    }
-                 }
-             }
-         }
-         return;
-      }
-      
-      // Allow pan tool to drag in edit mode
-      if (activeTool === 'pan' && mode === 'edit') return;
-      if (event.button !== 0 && event.type.includes('mouse')) return; 
-      
-      const coords = getCoord(event);
-      if (coords) {
-         event.stopPropagation();
-         handleAction(coords.gridX, coords.gridY);
-      }
+  useGesture(
+    {
+      onPointerDown: ({ event }) => {
+        // In view mode, allow panning (let event bubble) unless highlight mode is active
+        if (mode === 'view') {
+          if (clickHighlightMode !== 'none') {
+            const coords = getCoord(event);
+            if (coords) {
+              event.stopPropagation();
+              if (clickHighlightMode === 'row') {
+                const y = String(coords.gridY);
+                const currentQuery = useAppStore.getState().highlightQuery;
+                if (currentQuery.type === 'row' && currentQuery.value?.includes(y)) {
+                  const newVal = currentQuery.value.filter((v) => v !== y);
+                  setHighlightQuery(newVal.length > 0 ? { type: 'row', value: newVal } : { type: null, value: null });
+                } else {
+                  setHighlightQuery({ type: 'row', value: [y] });
+                }
+              } else if (clickHighlightMode === 'col') {
+                const x = String(coords.gridX);
+                const currentQuery = useAppStore.getState().highlightQuery;
+                if (currentQuery.type === 'col' && currentQuery.value?.includes(x)) {
+                  const newVal = currentQuery.value.filter((v) => v !== x);
+                  setHighlightQuery(newVal.length > 0 ? { type: 'col', value: newVal } : { type: null, value: null });
+                } else {
+                  setHighlightQuery({ type: 'col', value: [x] });
+                }
+              } else if (clickHighlightMode === 'color') {
+                const color = beads[`${coords.gridX},${coords.gridY}`];
+                const currentQuery = useAppStore.getState().highlightQuery;
+                if (color) {
+                  if (currentQuery.type === 'color' && currentQuery.value?.includes(color)) {
+                    const newVal = currentQuery.value.filter((v) => v !== color);
+                    setHighlightQuery(newVal.length > 0 ? { type: 'color', value: newVal } : { type: null, value: null });
+                  } else {
+                    setHighlightQuery({ type: 'color', value: [color] });
+                  }
+                }
+              }
+            }
+          }
+          return;
+        }
+
+        // Allow pan tool to drag in edit mode
+        if (activeTool === 'pan' && mode === 'edit') return;
+        if (event.button !== 0 && event.type.includes('mouse')) return;
+
+        const coords = getCoord(event);
+        if (coords) {
+          event.stopPropagation();
+          handleAction(coords.gridX, coords.gridY);
+        }
+      },
+      // We can also implement drag to draw
+      onDrag: ({ event, dragging, pinching, cancel }) => {
+        if (pinching) return;
+
+        if (mode === 'view') {
+          if (clickHighlightMode === 'row' || clickHighlightMode === 'col') {
+            const coords = getCoord(event);
+            if (coords && dragging) {
+              event.stopPropagation();
+              const newVal = clickHighlightMode === 'row' ? String(coords.gridY) : String(coords.gridX);
+              const currentQuery = useAppStore.getState().highlightQuery;
+              const currentArr = currentQuery.type === clickHighlightMode && currentQuery.value ? currentQuery.value : [];
+              if (!currentArr.includes(newVal)) {
+                useAppStore.getState().setHighlightQuery({ type: clickHighlightMode, value: [...currentArr, newVal] });
+              }
+            }
+          }
+          return;
+        }
+
+        if (activeTool === 'fill' || activeTool === 'pan') return; // fill is click only, pan is handled by canvas
+
+        // Prevent stuck drag state if mouse button was released during an alert
+        if ('buttons' in event && (event as any).buttons === 0) {
+          cancel();
+          return;
+        }
+
+        const coords = getCoord(event);
+        if (coords && dragging) {
+          event.stopPropagation();
+          handleAction(coords.gridX, coords.gridY);
+        }
+      },
     },
-    // We can also implement drag to draw
-    onDrag: ({ event, dragging, pinching, cancel }) => {
-       if (pinching) return;
-
-       if (mode === 'view') {
-           if (clickHighlightMode === 'row' || clickHighlightMode === 'col') {
-               const coords = getCoord(event);
-               if (coords && dragging) {
-                   event.stopPropagation();
-                   const newVal = clickHighlightMode === 'row' ? String(coords.gridY) : String(coords.gridX);
-                   const currentQuery = useAppStore.getState().highlightQuery;
-                   const currentArr = (currentQuery.type === clickHighlightMode && currentQuery.value) ? currentQuery.value : [];
-                   if (!currentArr.includes(newVal)) {
-                       useAppStore.getState().setHighlightQuery({ type: clickHighlightMode, value: [...currentArr, newVal] });
-                   }
-               }
-           }
-           return;
-       }
-
-       if (activeTool === 'fill' || activeTool === 'pan') return; // fill is click only, pan is handled by canvas
-
-       // Prevent stuck drag state if mouse button was released during an alert
-       if (('buttons' in event) && (event as any).buttons === 0) {
-           cancel();
-           return;
-       }
-
-       const coords = getCoord(event);
-       if (coords && dragging) {
-           event.stopPropagation();
-           handleAction(coords.gridX, coords.gridY);
-       }
-    }
-  }, {
-     target: layerRef,
-     drag: { filterTaps: true, pointerEvents: true }
-  });
+    {
+      target: layerRef,
+      drag: { filterTaps: true, pointerEvents: true },
+    },
+  );
 
   const beadElements = Object.entries(beads).map(([coord, color]) => {
     const [xStr, yStr] = coord.split(',');
@@ -158,11 +161,11 @@ export const BeadsLayer: React.FC = React.memo(() => {
     let isFaded = false;
 
     if (highlightQuery.type) {
-       if (highlightQuery.type === 'row' && highlightQuery.value?.includes(yStr)) isHighlighted = true;
-       else if (highlightQuery.type === 'col' && highlightQuery.value?.includes(xStr)) isHighlighted = true;
-       else if (highlightQuery.type === 'color' && highlightQuery.value?.includes(color)) isHighlighted = true;
-       
-       if (!isHighlighted) isFaded = true;
+      if (highlightQuery.type === 'row' && highlightQuery.value?.includes(yStr)) isHighlighted = true;
+      else if (highlightQuery.type === 'col' && highlightQuery.value?.includes(xStr)) isHighlighted = true;
+      else if (highlightQuery.type === 'color' && highlightQuery.value?.includes(color)) isHighlighted = true;
+
+      if (!isHighlighted) isFaded = true;
     }
 
     return (
@@ -177,32 +180,32 @@ export const BeadsLayer: React.FC = React.memo(() => {
           backgroundColor: color,
           backdropFilter: color.includes('rgba') ? 'blur(2px)' : 'none',
           boxShadow: '1px 1px 2px rgba(0,0,0,0.25), inset -1px -2px 3px rgba(0,0,0,0.15), inset 1px 1px 2px rgba(255,255,255,0.4)',
-          border: '0.5px solid rgba(0,0,0,0.1)'
+          border: '0.5px solid rgba(0,0,0,0.1)',
         }}
       >
         {/* Hole in the middle */}
-        <div 
-          className="rounded-full" 
-          style={{ 
-            width: '35%', 
-            height: '35%', 
+        <div
+          className='rounded-full'
+          style={{
+            width: '35%',
+            height: '35%',
             boxShadow: 'inset 1px 1px 2px rgba(0,0,0,0.3)',
-            border: '0.5px solid rgba(0,0,0,0.1)'
-          }} 
+            border: '0.5px solid rgba(0,0,0,0.1)',
+          }}
         />
       </div>
     );
   });
 
-  const handleCanvasClick = (e: React.MouseEvent | React.TouchEvent) => {
+  const handleCanvasClick = () => {
     // Canvas click handled primarily by onPointerDown for highlight logic
   };
 
   return (
-    <div 
+    <div
       ref={layerRef}
       onClick={handleCanvasClick}
-      className="absolute top-0 left-0 touch-none"
+      className='absolute top-0 left-0 touch-none'
       style={{
         width: RADIUS * 2 * GRID_SIZE,
         height: RADIUS * 2 * GRID_SIZE,
