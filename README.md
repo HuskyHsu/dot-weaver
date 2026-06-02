@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="./public/icons/icon-512x512.png" alt="Dot Weaver Icon" width="128" />
+</p>
+
 # Dot Weaver
 
 Dot Weaver is a modern, intuitive, and highly interactive pixel art and perler bead drawing application. Built with React and an infinite canvas architecture, it allows users to freely create dot-based art, share their creations effortlessly via URL, and use it seamlessly on any device.
